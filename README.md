@@ -99,6 +99,104 @@ flowchart TD
 - **Approach**: Real-time annotation of video frames with metrics and visual indicators
 - **Outputs**: Annotated video, speed graphs, heatmaps, and comparative analyses
 
+#### 7. Pose Detection & 3D Pose Estimation
+- **Technology**: YOLOv8-pose primary model with RTMPose mobile fallback
+- **Purpose**: Extract precise human joint positions for advanced biomechanical analysis
+- **Approach**: Multi-model system with optimal performance across device capabilities
+- **Mathematical Foundation**:
+  - Keypoint Confidence: $c_k = P(keypoint_k | I)$ where $I$ is the input image
+  - Precision-optimized model selection:
+    $$model = \begin{cases}
+      YOLOv8\text{-}pose, & \text{for high-performance devices} \\
+      RTMPose, & \text{for mobile/edge computing}
+    \end{cases}$$
+- **Keypoint Formats**:
+  - COCO Standard: 17 keypoints for human body
+  - Extended formats for hands, face and detailed body analysis
+- **Advantages**: 
+  - Real-time performance on various hardware
+  - High accuracy with optimal model selection
+  - Comprehensive visibility of human body articulation
+- **Citation**: YOLOv8-pose[^7] provides state-of-the-art performance with RTMPose[^8] offering efficient deployment on resource-constrained devices
+
+#### 8. 3D Pose Lifting
+- **Technology**: MotionBERT-Lite transformer model
+- **Purpose**: Convert 2D pose detections to full 3D articulated poses
+- **Approach**: Sequence-based temporal modeling for coherent 3D estimation
+- **Features**:
+  - Full skeletal reconstruction in 3D space
+  - Joint angle calculation for biomechanical analysis
+  - Motion embedding extraction for action recognition
+  - Trajectory analysis for movement prediction
+- **Mathematical Framework**:
+  - 3D Lifting Function: $f_{lift}(P_{2D}) \rightarrow P_{3D}$ 
+  - Joint Angle Calculation: $\theta = \cos^{-1}\left(\frac{\vec{v_1} \cdot \vec{v_2}}{|\vec{v_1}||\vec{v_2}|}\right)$
+  - Temporal consistency through sequence modeling with attention mechanisms
+- **Advantages**:
+  - Accurate 3D reconstruction from monocular video
+  - Temporal consistency across frames
+  - Rich motion representation for downstream tasks
+- **Citation**: MotionBERT[^9] applies transformer architecture to efficiently model human motion in 3D space
+
+#### 9. Voice Processing
+- **Technology**: Integration of ASR (Whisper) and TTS (XTTS) capabilities
+- **Purpose**: Enable audio analysis and voice feedback within the framework
+- **Features**:
+  - High-quality speech transcription with timestamps
+  - Multilingual voice synthesis with voice cloning
+  - Complete audio input/output processing pipeline
+- **Applications**:
+  - Audio commentary analysis in sports footage
+  - Voice feedback during training sessions
+  - Multimodal analysis combining visual and audio cues
+- **Implementation Details**:
+  - ASR using OpenAI's Whisper large-v3 model
+  - TTS using Coqui's XTTS v2 multilingual voice synthesis
+  - Voice cloning with just 6+ seconds of reference audio
+- **Citation**: Whisper[^10] provides robust speech recognition while XTTS[^11] delivers natural-sounding speech synthesis with voice cloning capabilities
+
+```mermaid
+flowchart TD
+    A[Video Input] --> B[Feature Extraction]
+    B --> C{Multi-Model Processing}
+    C --> D[2D Pose Detection]
+    C --> E[Object Detection]
+    C --> F[Audio Extraction]
+    
+    D --> G[3D Pose Lifting]
+    G --> H[Joint Angle Analysis]
+    G --> I[Motion Embedding]
+    
+    E --> J[Human Tracking]
+    
+    F --> K[Speech Recognition]
+    
+    H --> L[Biomechanical Analysis]
+    I --> M[Action Recognition]
+    J --> N[Speed Estimation]
+    K --> O[Context Understanding]
+    
+    L --> P[Comprehensive Analysis]
+    M --> P
+    N --> P
+    O --> P
+    
+    P --> Q[Visualization]
+    P --> R[Voice Feedback]
+    
+    style D fill:#90EE90
+    style E fill:#90EE90
+    style F fill:#90EE90
+    style G fill:#90EE90
+    style H fill:#90EE90
+    style I fill:#90EE90
+    style J fill:#90EE90
+    style K fill:#90EE90
+    style P fill:#FFD700
+    style Q fill:#90EE90
+    style R fill:#90EE90
+```
+
 ## Knowledge Base & Scientific Foundation
 
 ### Understanding High-Speed Human Movement
@@ -245,6 +343,22 @@ filterpy>=1.4.5     # For Kalman filtering
 scipy>=1.7.0
 matplotlib>=3.4.0
 tqdm>=4.62.0
+transformers>=4.30.0  # For Hugging Face models
+sentence-transformers>=2.2.2  # For embeddings
+diffusers>=0.16.0  # For generative models
+accelerate>=0.20.0  # For efficient inference
+faiss-cpu>=1.7.4  # For vector search
+huggingface-hub>=0.16.4  # For model downloading
+timm>=0.9.2  # For vision transformers
+einops>=0.6.1  # For tensor operations
+safetensors>=0.3.2  # For safe model loading
+peft>=0.5.0  # For parameter-efficient fine-tuning
+bitsandbytes>=0.41.0  # For quantization
+TTS>=0.17.0  # Coqui TTS package
+pydub>=0.25.1  # For audio processing
+soundfile>=0.12.1  # For audio file operations
+librosa>=0.10.0  # Audio processing library
+ffmpeg-python>=0.2.0  # For media processing
 ```
 
 ### Basic Installation
@@ -304,6 +418,16 @@ The Vibrio framework is continually evolving with planned enhancements:
 [^5]: Federolf, P. A. (2016). A novel approach to study human posture control: "Principal movements" obtained from a principal component analysis of kinematic marker data. Journal of biomechanics, 49(3), 364-370.
 
 [^6]: Stein, M., Janetzko, H., Seebacher, D., Jäger, A., Nagel, M., Hölsch, J., ... & Keim, D. A. (2017). How to make sense of team sport data: From acquisition to data modeling and research aspects. Data, 2(1), 2.
+
+[^7]: Jocher, G., Chaurasia, A., & Qiu, J. (2023). YOLO by Ultralytics (Version 8.0.0) [Computer software]. https://github.com/ultralytics/ultralytics
+
+[^8]: Qualcomm AI Research. (2023). RTMPose: Real-Time Multi-Person Pose Estimation based on MMPose. https://huggingface.co/qualcomm/RTMPose_Body2d 
+
+[^9]: Zhu, W., Wang, K., Liu, P., Zhang, Y., Guo, Y., & Sun, J. (2023). MotionBERT: Unified Pretraining for Human Motion Analysis. [arXiv preprint arXiv:2210.05413](https://arxiv.org/abs/2210.05413)
+
+[^10]: Radford, A., Kim, J. W., Xu, T., Brockman, G., McLeavey, C., & Sutskever, I. (2022). Robust Speech Recognition via Large-Scale Weak Supervision. OpenAI. [https://cdn.openai.com/papers/whisper.pdf](https://cdn.openai.com/papers/whisper.pdf)
+
+[^11]: Coqui Foundation. (2023). XTTS v2: Cross-lingual and Multilingual TTS with Voice Cloning. [https://huggingface.co/coqui/XTTS-v2](https://huggingface.co/coqui/XTTS-v2)
 
 ## License
 
