@@ -2,7 +2,7 @@
 
 # Core modules
 from .detector import HumanDetector
-from .tracker import ObjectTracker
+from .tracker import HumanTracker
 from .speed_estimator import SpeedEstimator
 from .physics_verifier import PhysicsVerifier
 from .visualizer import Visualizer
@@ -14,7 +14,7 @@ from .pose3d import Pose3DEstimator
 from .video_feat import VideoFeatureExtractor
 from .action_recognition import ActionRecognizer, SkeletonActionClassifier, RGBActionClassifier
 from .embeddings import EmbeddingsManager
-from .voice import VoiceProcessor
+# from .voice import VoiceProcessor  # Removed TTS dependency
 from .caption import ImageCaptioner
 from .llm import LLMProcessor
 

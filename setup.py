@@ -45,7 +45,6 @@ setup(
         "safetensors>=0.3.2",
         "peft>=0.5.0",
         "bitsandbytes>=0.41.0",
-        "TTS>=0.17.0",
         "pydub>=0.25.1",
         "soundfile>=0.12.1",
         "librosa>=0.10.0",
