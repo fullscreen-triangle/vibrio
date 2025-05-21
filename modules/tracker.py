@@ -110,7 +110,7 @@ class Track:
     def get_state(self):
         """Get current state"""
         return {
-            'id': self.id,
+            'track_id': self.id,
             'bbox': self.bbox,
             'velocity': [float(self.kf.x[4]), float(self.kf.x[5])],
             'history': self.history,
@@ -177,7 +177,7 @@ class HumanTracker:
         iou_matrix = np.zeros((len(detections), len(tracks)))
         for d, detection in enumerate(detections):
             for t, track in enumerate(tracks):
-                iou_matrix[d, t] = self._iou(detection[:4], track.bbox)
+                iou_matrix[d, t] = self._iou(detection['bbox'], track.bbox)
         
         # Use Hungarian algorithm for optimal assignment
         # The scipy function solves a minimization problem
@@ -202,7 +202,9 @@ class HumanTracker:
         Update tracker with new detections
         
         Args:
-            detections (list): List of detections, each as [x1, y1, x2, y2, confidence]
+            detections (list): List of detections, each as a dict with keys:
+                 - 'bbox': [x1, y1, x2, y2] (the bounding box coordinates)
+                 - 'confidence': float (detection confidence score)
             frame (numpy.ndarray, optional): Current frame (unused, for future extensions)
             
         Returns:
@@ -220,11 +222,11 @@ class HumanTracker:
         
         # Update matched tracks
         for d_idx, t_idx in matches:
-            self.tracks[t_idx].update(detections[d_idx][:4])
+            self.tracks[t_idx].update(detections[d_idx]['bbox'])
         
         # Create new tracks for unmatched detections
         for d_idx in unmatched_detections:
-            new_track = Track(self.next_id, detections[d_idx][:4])
+            new_track = Track(self.next_id, detections[d_idx]['bbox'])
             self.tracks.append(new_track)
             self.next_id += 1
         

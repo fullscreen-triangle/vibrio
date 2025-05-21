@@ -3,6 +3,7 @@
 
 import math
 import numpy as np
+import cv2
 
 class SpeedEstimator:
     """Estimates human speed from tracked bounding boxes"""
@@ -77,16 +78,18 @@ class SpeedEstimator:
             fps (float): Video framerate
             
         Returns:
-            dict: Dictionary mapping track IDs to estimated speeds in km/h
+            list: Updated tracks with estimated speeds
         """
-        speeds = {}
-        
         for track in tracks:
-            history = track['history']
+            track_id = track.get('track_id')
+            if track_id is None:
+                continue
+                
+            history = track.get('history', [])
             
             # Need at least two points to calculate speed
             if len(history) < 2:
-                speeds[track['id']] = 0.0
+                track['speed'] = 0.0
                 continue
             
             # Smooth the trajectory
@@ -112,7 +115,67 @@ class SpeedEstimator:
             # Convert to km/h
             speed_kmh = speed_mps * 3.6
             
-            # Store result
-            speeds[track['id']] = speed_kmh
+            # Store result in the track
+            track['speed'] = speed_kmh
         
-        return speeds 
+        return tracks
+
+    def estimate_from_optical_flow(self, prev_frame, curr_frame, bbox, fps):
+        """
+        Estimate speed using optical flow within a bounding box
+        
+        Args:
+            prev_frame (numpy.ndarray): Previous frame
+            curr_frame (numpy.ndarray): Current frame
+            bbox (list): Bounding box in format [x1, y1, x2, y2]
+            fps (float): Frames per second
+            
+        Returns:
+            float: Estimated speed in km/h
+        """
+        # Convert frames to grayscale
+        prev_gray = cv2.cvtColor(prev_frame, cv2.COLOR_BGR2GRAY)
+        curr_gray = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2GRAY)
+        
+        # Crop to bounding box with a small margin
+        x1, y1, x2, y2 = bbox
+        margin = 10
+        x1 = max(0, x1 - margin)
+        y1 = max(0, y1 - margin)
+        x2 = min(curr_gray.shape[1], x2 + margin)
+        y2 = min(curr_gray.shape[0], y2 + margin)
+        
+        # Ensure the ROI is valid
+        if x2 <= x1 or y2 <= y1:
+            return 0.0
+            
+        # Crop regions of interest
+        prev_roi = prev_gray[y1:y2, x1:x2]
+        curr_roi = curr_gray[y1:y2, x1:x2]
+        
+        # Ensure ROIs have the same size
+        if prev_roi.shape != curr_roi.shape or prev_roi.size == 0 or curr_roi.size == 0:
+            return 0.0
+        
+        # Calculate optical flow
+        flow = cv2.calcOpticalFlowFarneback(
+            prev_roi, curr_roi, None, 0.5, 3, 15, 3, 5, 1.2, 0
+        )
+        
+        # Calculate magnitude of flow vectors
+        magnitude, _ = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+        
+        # Get average magnitude (pixels per frame)
+        avg_magnitude = np.mean(magnitude)
+        
+        # Convert to pixels per second
+        pixels_per_second = avg_magnitude * fps
+        
+        # Convert pixels to meters using pixel-to-meter ratio
+        # This is a simplified approach - ideally, we'd use camera calibration
+        meters_per_second = pixels_per_second * self.pixel_to_meter_ratio
+        
+        # Convert to km/h
+        km_per_hour = meters_per_second * 3.6
+        
+        return km_per_hour 

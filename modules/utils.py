@@ -6,6 +6,21 @@ import json
 import logging
 from pathlib import Path
 
+def create_dir_if_not_exists(directory):
+    """
+    Create a directory if it doesn't exist
+    
+    Args:
+        directory (str): Path of the directory to create
+        
+    Returns:
+        str: Path of the created directory
+    """
+    if not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+        logging.info(f"Created directory: {directory}")
+    return directory
+
 def setup_logger(debug=False):
     """
     Set up and configure logger

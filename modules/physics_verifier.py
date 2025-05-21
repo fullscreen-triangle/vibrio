@@ -185,34 +185,32 @@ class PhysicsVerifier:
                 confidence *= 0.5
                 # Adjust speed based on max possible acceleration
                 sign = 1 if acceleration > 0 else -1
-                previous_speed_ms = self.previous_speeds[track['id']] / 3.6
-                adjusted_speed_ms = previous_speed_ms + sign * accel_max / 30  # Assuming ~30fps
-                verified_speed = min(adjusted_speed_ms * 3.6, verified_speed)
+                track_id = track.get('track_id')
+                if track_id in self.previous_speeds:
+                    previous_speed_ms = self.previous_speeds[track_id] / 3.6
+                    adjusted_speed_ms = previous_speed_ms + sign * accel_max / 30  # Assuming ~30fps
+                    verified_speed = min(adjusted_speed_ms * 3.6, verified_speed)
         
         return verified_speed, confidence
     
-    def verify(self, speeds, tracks, fps=30):
+    def verify(self, tracks, fps=30):
         """
         Verify speeds of tracked humans
         
         Args:
-            speeds (dict): Dictionary mapping track IDs to estimated speeds
-            tracks (list): List of track states
+            tracks (list): List of track states with speed information
             fps (float): Video framerate
             
         Returns:
-            dict: Dictionary mapping track IDs to verified speeds
+            list: Updated tracks with verified speeds
         """
-        verified_speeds = {}
-        
-        # Create a lookup for tracks by ID
-        track_lookup = {track['id']: track for track in tracks}
-        
-        for track_id, speed in speeds.items():
-            if track_id not in track_lookup:
+        # Extract speeds from tracks
+        for track in tracks:
+            track_id = track.get('track_id')
+            if track_id is None:
                 continue
                 
-            track = track_lookup[track_id]
+            speed = track.get('speed', 0)
             
             # Calculate acceleration
             acceleration = self._calculate_acceleration(track_id, speed, fps)
@@ -222,9 +220,9 @@ class PhysicsVerifier:
             
             # Only use verified speed if confidence is high enough
             if confidence >= self.confidence_threshold:
-                verified_speeds[track_id] = verified_speed
+                track['speed'] = verified_speed
             else:
                 # For low confidence, use previous valid speed or 0
-                verified_speeds[track_id] = self.previous_speeds.get(track_id, 0)
+                track['speed'] = self.previous_speeds.get(track_id, 0)
         
-        return verified_speeds 
+        return tracks 

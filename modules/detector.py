@@ -39,7 +39,9 @@ class HumanDetector:
             frame (numpy.ndarray): BGR image
             
         Returns:
-            list: List of human detections, each as [x1, y1, x2, y2, confidence]
+            list: List of human detections, each as a dict with keys:
+                 - 'bbox': [x1, y1, x2, y2] (the bounding box coordinates)
+                 - 'confidence': float (detection confidence score)
         """
         # Run YOLOv8 inference
         results = self.model(frame, verbose=False)[0]
@@ -54,6 +56,9 @@ class HumanDetector:
             # Only keep person class with confidence above threshold
             if cls == self.person_class_id and conf >= self.conf_threshold:
                 x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-                detections.append([x1, y1, x2, y2, conf])
+                detections.append({
+                    'bbox': [x1, y1, x2, y2],
+                    'confidence': conf
+                })
                 
         return detections 

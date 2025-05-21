@@ -3,510 +3,374 @@
 </p>
 
 <h1 align="center">Vibrio</h1>
-<p align="center"><em>When human action becomes a sanitary cause for concern</em></p>
+<p align="center"><em>Computer Vision Framework for Human Motion Analysis</em></p>
 
-## About the Name
+## Overview
 
-Vibrio is named after the bacterium *Vibrio cholerae* - a deliberate play on words suggesting that the extreme speeds and movements analyzed by this framework are so extraordinary they're "sick" (in the colloquial sense). Just as the bacterium represents a biological extreme, Vibrio is designed to understand and analyze edge events in human motion that push the boundaries of what's physically possible.
+Vibrio is a computer vision framework designed to analyze human motion in video footage. The framework implements a modular pipeline approach for detecting, tracking, and analyzing humans in videos, with specific focus on motion analysis through multiple optical methods.
 
-## Vision 
+## Technical Architecture
 
-Vibrio is an advanced computer vision framework designed to detect, track, and analyze human speed with unprecedented precision from standard video footage. Unlike traditional systems that require specialized high-speed cameras, Vibrio employs sophisticated algorithms and physics-based verification to extract accurate speed metrics from ordinary video.
-
-**Core Vision**: To make high-velocity event analysis accessible through computational approaches rather than specialized hardware.
-
-### Primary Goals
-
-1. **Human-Focused Speed Analysis**: Detect and track humans in various contexts (sports, racing, everyday activities) with velocity extraction
-2. **Physics-Based Verification**: Apply domain-specific physical constraints to validate speed measurements
-3. **Contextual Understanding**: Adapt analysis based on activity type (e.g., F1 racing vs. swimming)
-4. **Visualization & Annotation**: Generate insightful visualizations of speed, acceleration, and forces
-5. **Accessibility**: Enable analysis using standard video equipment rather than specialized hardware
-
-## Technical Approach & Framework Architecture
-
-Vibrio utilizes a multi-stage pipeline approach that combines state-of-the-art computer vision with physics-based modeling:
-
-```mermaid
-flowchart TD
-    A[Input Video] --> B[Human Detection]
-    B --> C[Object Tracking]
-    C --> D[Speed Estimation]
-    D --> E[Physics Verification]
-    E --> F[Force Analysis]
-    F --> G[Visualization]
-    E -.-> H[Context Recognition]
-    H -.-> E
-    
-    subgraph Legend
-    Z1[Implemented] --- Z2[Planned]
-    end
-    
-    style B fill:#90EE90
-    style C fill:#90EE90
-    style D fill:#90EE90
-    style E fill:#90EE90
-    style G fill:#90EE90
-    style F fill:#FFD700
-    style H fill:#FFD700
-```
-
-### Core Components
-
-#### 1. Human Detection
-- **Technology**: YOLOv8 deep learning model
-- **Purpose**: Identify human figures in each frame with high precision
-- **Approach**: Optimized for human detection specifically rather than general object detection
-- **Advantages**: Fast, accurate detection with minimal false positives
-
-#### 2. Multi-Object Tracking
-- **Technology**: Kalman Filter-based tracking with Hungarian algorithm for assignment
-- **Purpose**: Maintain identity of detected humans across frames
-- **Approach**: State-space modeling of position, velocity, and bounding box characteristics
-- **Advantages**: Robust tracking through partial occlusions and varying lighting conditions
-
-#### 3. Speed Estimation
-- **Technology**: Trajectory analysis with camera calibration compensation
-- **Purpose**: Calculate speed in physical units (km/h, m/s) from pixel movements
-- **Approach**: Combines pixel displacement with calibration parameters to estimate real-world velocity
-- **Mathematical Foundation**:
-  $$v = \frac{\Delta d}{\Delta t} = \frac{d_{pixel} \cdot r_{calibration}}{frames/fps}$$
-  Where:
-  - $v$ is velocity in m/s
-  - $d_{pixel}$ is distance in pixels
-  - $r_{calibration}$ is pixel-to-meter ratio from calibration
-  - $fps$ is frames per second of the video
-
-#### 4. Physics Verification
-- **Technology**: Domain-specific physical constraint modeling
-- **Purpose**: Validate speed estimates against physical limitations
-- **Approach**: Context-aware verification using known physical constraints for different activities
-- **Key Constraints**:
-  - Maximum human running speed: ~45 km/h (Usain Bolt)[^1]
-  - Maximum human acceleration: ~10 m/s² (elite sprinters)[^2]
-  - Activity-specific limits (e.g., swimming, cycling, motorsports)
-
-#### 5. Force Analysis & Biomechanics (Planned)
-- **Technology**: Biomechanical modeling and force estimation
-- **Purpose**: Calculate forces experienced by humans during high-velocity activities
-- **Approach**: Apply physical principles to estimate G-forces, impact forces, and biomechanical stress
-- **Mathematical Models**:
-  - Newton's Second Law: $F = ma$
-  - Centripetal Force: $F_c = \frac{mv^2}{r}$
-  - Impact Force: $F_{impact} = m \cdot \frac{\Delta v}{\Delta t}$
-
-#### 6. Visualization & Annotation
-- **Technology**: OpenCV and Matplotlib for rendering
-- **Purpose**: Create intuitive visualizations of speed, trajectory, and forces
-- **Approach**: Real-time annotation of video frames with metrics and visual indicators
-- **Outputs**: Annotated video, speed graphs, heatmaps, and comparative analyses
-
-#### 7. Pose Detection & 3D Pose Estimation
-- **Technology**: YOLOv8-pose primary model with RTMPose mobile fallback
-- **Purpose**: Extract precise human joint positions for advanced biomechanical analysis
-- **Approach**: Multi-model system with optimal performance across device capabilities
-- **Mathematical Foundation**:
-  - Keypoint Confidence: $c_k = P(keypoint_k | I)$ where $I$ is the input image
-  - Precision-optimized model selection:
-    $$model = \begin{cases}
-      YOLOv8\text{-}pose, & \text{for high-performance devices} \\
-      RTMPose, & \text{for mobile/edge computing}
-    \end{cases}$$
-- **Keypoint Formats**:
-  - COCO Standard: 17 keypoints for human body
-  - Extended formats for hands, face and detailed body analysis
-- **Advantages**: 
-  - Real-time performance on various hardware
-  - High accuracy with optimal model selection
-  - Comprehensive visibility of human body articulation
-- **Citation**: YOLOv8-pose[^7] provides state-of-the-art performance with RTMPose[^8] offering efficient deployment on resource-constrained devices
-
-#### 8. 3D Pose Lifting
-- **Technology**: MotionBERT-Lite transformer model
-- **Purpose**: Convert 2D pose detections to full 3D articulated poses
-- **Approach**: Sequence-based temporal modeling for coherent 3D estimation
-- **Features**:
-  - Full skeletal reconstruction in 3D space
-  - Joint angle calculation for biomechanical analysis
-  - Motion embedding extraction for action recognition
-  - Trajectory analysis for movement prediction
-- **Mathematical Framework**:
-  - 3D Lifting Function: $f_{lift}(P_{2D}) \rightarrow P_{3D}$ 
-  - Joint Angle Calculation: $\theta = \cos^{-1}\left(\frac{\vec{v_1} \cdot \vec{v_2}}{|\vec{v_1}||\vec{v_2}|}\right)$
-  - Temporal consistency through sequence modeling with attention mechanisms
-- **Advantages**:
-  - Accurate 3D reconstruction from monocular video
-  - Temporal consistency across frames
-  - Rich motion representation for downstream tasks
-- **Citation**: MotionBERT[^9] applies transformer architecture to efficiently model human motion in 3D space
-
-#### 9. Voice Processing
-- **Technology**: Integration of ASR (Whisper) and TTS (XTTS) capabilities
-- **Purpose**: Enable audio analysis and voice feedback within the framework
-- **Features**:
-  - High-quality speech transcription with timestamps
-  - Multilingual voice synthesis with voice cloning
-  - Complete audio input/output processing pipeline
-- **Applications**:
-  - Audio commentary analysis in sports footage
-  - Voice feedback during training sessions
-  - Multimodal analysis combining visual and audio cues
-- **Implementation Details**:
-  - ASR using OpenAI's Whisper large-v3 model
-  - TTS using Coqui's XTTS v2 multilingual voice synthesis
-  - Voice cloning with just 6+ seconds of reference audio
-- **Citation**: Whisper[^10] provides robust speech recognition while XTTS[^11] delivers natural-sounding speech synthesis with voice cloning capabilities
-
-```mermaid
-flowchart TD
-    A[Video Input] --> B[Feature Extraction]
-    B --> C{Multi-Model Processing}
-    C --> D[2D Pose Detection]
-    C --> E[Object Detection]
-    C --> F[Audio Extraction]
-    
-    D --> G[3D Pose Lifting]
-    G --> H[Joint Angle Analysis]
-    G --> I[Motion Embedding]
-    
-    E --> J[Human Tracking]
-    
-    F --> K[Speech Recognition]
-    
-    H --> L[Biomechanical Analysis]
-    I --> M[Action Recognition]
-    J --> N[Speed Estimation]
-    K --> O[Context Understanding]
-    
-    L --> P[Comprehensive Analysis]
-    M --> P
-    N --> P
-    O --> P
-    
-    P --> Q[Visualization]
-    P --> R[Voice Feedback]
-    
-    style D fill:#90EE90
-    style E fill:#90EE90
-    style F fill:#90EE90
-    style G fill:#90EE90
-    style H fill:#90EE90
-    style I fill:#90EE90
-    style J fill:#90EE90
-    style K fill:#90EE90
-    style P fill:#FFD700
-    style Q fill:#90EE90
-    style R fill:#90EE90
-```
-
-## Knowledge Base & Scientific Foundation
-
-### Understanding High-Speed Human Movement
-
-The analysis of human movement at high speeds requires an interdisciplinary approach combining:
-
-1. **Biomechanics**: How the human body generates and controls movement
-2. **Physics**: The fundamental principles governing motion, forces, and energy
-3. **Computer Vision**: The computational extraction of meaningful information from visual data
-
-### Critical Physical Principles
-
-#### Motion Equations
-For constant acceleration:
-- Position: $s = s_0 + v_0t + \frac{1}{2}at^2$
-- Velocity: $v = v_0 + at$
-- Acceleration: $a = \frac{dv}{dt}$
-
-#### Rotational Dynamics
-For angular motion (relevant in many sports):
-- Angular velocity: $\omega = \frac{d\theta}{dt}$
-- Angular acceleration: $\alpha = \frac{d\omega}{dt}$
-- Torque: $\tau = I\alpha$
-
-#### Energy Considerations
-- Kinetic Energy: $E_k = \frac{1}{2}mv^2$
-- Work: $W = Fd$
-- Power: $P = \frac{dW}{dt}$
-
-### Context-Specific Knowledge
-
-Different activities have unique physical characteristics that the system must account for:
-
-```mermaid
-graph TD
-    A[Human Activity] --> B[Terrestrial]
-    A --> C[Aquatic]
-    A --> D[Aerial]
-    A --> E[Vehicle-Assisted]
-    
-    B --> B1[Running]
-    B --> B2[Jumping]
-    B --> B3[Combat Sports]
-    
-    C --> C1[Swimming]
-    C --> C2[Diving]
-    C --> C3[Surfing]
-    
-    D --> D1[Skydiving]
-    D --> D2[Gymnastics]
-    
-    E --> E1[Motorsports]
-    E --> E2[Cycling]
-    E --> E3[Winter Sports]
-    
-    style A fill:#f9f,stroke:#333,stroke-width:4px
-```
-
-#### Activity-Specific Physical Constraints
-
-| Activity | Max Speed | Max Acceleration | Key Physical Considerations |
-|----------|-----------|------------------|--------------------------|
-| Sprinting | ~45 km/h | ~10 m/s² | Ground reaction forces, stride frequency |
-| Swimming | ~8 km/h | ~2 m/s² | Water resistance, buoyancy, stroke mechanics |
-| Cycling | ~80 km/h | ~4 m/s² | Aerodynamics, power-to-weight ratio |
-| Motorsports | ~350 km/h | ~5G | G-forces, vehicle dynamics |
-| Combat Sports | ~30 km/h (punch) | ~100 m/s² | Rotational dynamics, impulse |
-| Jumping | ~10 m/s (vertical) | ~12 m/s² | Gravitational effects, elasticity |
-
-## Why This Approach Is Appropriate
-
-### Computational vs. Hardware Solutions
-
-Traditional high-speed analysis relies on expensive specialized cameras (often $10,000+) that:
-- Require specific lighting conditions
-- Need expert operation
-- Are limited in deployment flexibility
-- Cannot be applied retrospectively to existing footage
-
-Vibrio takes a fundamentally different approach by:
-- Using computational methods on standard video (30-60fps)
-- Applying physical constraints to validate and refine measurements
-- Utilizing contextual understanding to improve accuracy
-- Enabling analysis of any video containing human motion
-
-This computational approach presents several advantages:
-1. **Accessibility**: Analysis can be performed on existing footage
-2. **Cost-effectiveness**: No specialized hardware required
-3. **Flexibility**: Adaptable to various contexts and environments
-4. **Continuous improvement**: New algorithms can enhance existing analyses
-
-### Technical Validation
-
-The accuracy of Vibrio has been validated through:
-1. Comparison with known physical constraints
-2. Internal consistency checks
-3. Verification against reference measurements (where available)
-
-For example, in sprinting contexts, measurements align with expected human capabilities:
-- Elite sprinter acceleration: 8-10 m/s²
-- Maximum running speed: 35-45 km/h
-- Stride frequency: 4-5 Hz
-
-### Applications & Use Cases
-
-The Vibrio framework enables numerous applications:
-
-1. **Sports Analysis**
-   - Performance optimization for athletes
-   - Technique refinement and coaching
-   - Injury prevention through biomechanical analysis
-
-2. **Motorsports**
-   - Driver performance analysis
-   - G-force visualization and physical stress assessment
-   - Comparative analysis between drivers
-
-3. **Action Sports**
-   - Speed and height measurements for jumps/tricks
-   - Impact force estimation
-   - Rotation speed analysis
-
-4. **Medical & Rehabilitation**
-   - Gait analysis
-   - Recovery progress monitoring
-   - Movement quality assessment
-
-5. **Entertainment & Media**
-   - Enhanced sports broadcasts
-   - Documentary analysis
-   - Educational visualization
-
-## Visualization Examples
-
-The Vibrio framework was developed to analyze human motion at extreme speeds - conditions where traditional analysis tools simply fail. Below are examples from one of the most dangerous and technically challenging motorsport events in the world: **The Isle of Man TT Race**.
-
-### Extreme Speed Analysis: Isle of Man TT
-
-The Isle of Man TT (Tourist Trophy) is infamous for being one of the deadliest motorsport events globally, with riders reaching speeds of **200+ mph (320+ km/h)** on narrow public roads with no run-off areas. Conventional speed analysis tools struggle to accurately measure these velocities from ordinary video footage.
-
-<p align="center">
-  <img src="public/visualization/biker_speed_analysis_collage.png" alt="Biker Speed Analysis Collage" width="800"/>
-</p>
-
-The visualization above reveals extraordinary data captured from the **Sulby Straight** section - the fastest part of the TT course where riders approach speeds that would be impossible to measure without Vibrio's physics-based verification algorithms. In just ordinary video footage, Vibrio detected peak speeds exceeding 190 mph, which align with official timing data from the race.
-
-#### Speed Distribution Analysis: Finding the Edge of Performance
-
-<p align="center">
-  <img src="public/visualization/speed_distribution.png" alt="Speed Distribution Analysis" width="700"/>
-</p>
-
-This visualization demonstrates how Vibrio can extract nuanced speed patterns undetectable to the naked eye. The speed distribution reveals how top riders maintain velocities in the 180-190 mph range for sustained periods, constantly riding at the edge of physics and human capability. The precise measurement of these speed plateaus provides crucial safety insights that could help reduce the race's notorious fatality rate.
-
-#### Competitive Performance Analysis: Finding the Margin of Victory
-
-<p align="center">
-  <img src="public/visualization/bikers_peak_speed.png" alt="Comparative Peak Speed Analysis" width="700"/>
-</p>
-
-In motorsport, victories are often decided by fractions of a second. This comparative analysis shows the incremental advantages between riders that would be impossible to discern without Vibrio's millisecond-precise tracking. Note how Rider 2 maintains slightly higher sustained speeds through the most technical sections, resulting in a 2.3-second advantage over 4.5 kilometers - a difference practically invisible to conventional analysis.
-
-### Capturing the Uncapturable: Extreme Motion Tracking
-
-Traditional motion tracking systems fail completely at the speeds reached during the Isle of Man TT. Vibrio's revolutionary approach combines physics-constrained algorithms with advanced pose estimation to achieve what was previously considered impossible - accurate skeletal tracking at speeds exceeding 180 mph:
-
-<div align="center">
-  <img src="public/visualization/driver_1.gif" alt="Driver 1 Motion Tracking" width="400"/>
-  <img src="public/visualization/second_driver.gif" alt="Driver 2 Motion Tracking" width="400"/>
-</div>
-
-Notice how Vibrio maintains tracking integrity even through rapid acceleration phases and extreme lean angles approaching 64 degrees - angles at which the rider's knee and elbow are just inches from the asphalt while traveling at speeds that would instantly be fatal in any crash.
-
-#### The Speed Barrier: Breaking the 200 mph Threshold
-
-<p align="center">
-  <img src="public/visualization/toofast.gif" alt="Extreme Speed Motion Tracking" width="700"/>
-</p>
-
-**This is what makes Vibrio truly revolutionary.** The visualization above shows a rider approaching the 200 mph barrier at Sulby Straight. At these speeds, the human eye struggles to even follow the motorcycle, yet Vibrio maintains precise skeletal tracking, speed estimation, and posture analysis - all from standard video footage that would be unusable with conventional tools.
-
-The physical forces at work are extraordinary: the rider experiences up to 3G in acceleration, must resist 35kg of wind force against their body, and processes visual information at the very limits of human capability. Vibrio's ability to extract meaningful data under these extreme conditions represents a paradigm shift in motion analysis technology.
-
-### Biomechanical Analysis at the Edge of Human Performance
-
-Vibrio goes beyond simple speed measurement by analyzing the subtle biomechanics of riders pushing the limits of human capability:
-
-<div align="center">
-  <img src="public/visualization/postural_sway.png" alt="Postural Sway Analysis" width="700"/>
-</div>
-
-The postural sway analysis above reveals critical insights about rider technique at extreme speeds. Notice how elite riders maintain remarkably low sway values even while navigating bumps and crosswinds at 180+ mph. This level of stability is achieved through years of experience and precise muscular control that can now be quantitatively measured for the first time.
-
-<div align="center">
-  <img src="public/visualization/locomotion.png" alt="Locomotion Energy Analysis" width="700"/>
-</div>
-
-The locomotion energy metric provides unprecedented insight into rider efficiency. Elite TT riders show distinctive energy conservation patterns through technical sections, allowing them to maintain focus and prevent fatigue during the grueling 37.73-mile (60.72 km) course where a single lapse in concentration can be fatal.
-
-#### Key Performance Metrics Revolutionizing Motorsport Analysis:
-
-1. **Postural Sway**: Measures microsecond variations in a rider's center of mass position, revealing stability differences invisible to conventional analysis. Lower values typically correlate with more experienced riders who can maintain position even under extreme g-forces.
-
-2. **Locomotion Energy**: Quantifies the physical exertion and biomechanical efficiency of rider movement. This metric has proven crucial for understanding fatigue patterns across the TT's 20+ minute laps where riders must maintain absolute focus despite physical exhaustion.
-
-3. **Stability Score**: Represents consistency of movement across high-frequency micro-adjustments. This metric identifies the subtle differences between good riders and true masters of the sport who can achieve what seems impossible: perfect stability at speeds exceeding 180 mph.
-
-Vibrio has fundamentally transformed our understanding of human performance at extreme speeds, providing insights that were previously unattainable with any existing technology. Its ability to extract precise metrics from ordinary video footage makes advanced biomechanical analysis accessible without the need for specialized equipment.
-
-## Installation & Usage
-
-### Requirements
+The Vibrio framework is structured as a modular pipeline with the following components:
 
 ```
-opencv-python>=4.5.0
-numpy>=1.20.0
-torch>=1.9.0
-torchvision>=0.10.0
-ultralytics>=8.0.0  # For YOLOv8
-filterpy>=1.4.5     # For Kalman filtering
-scipy>=1.7.0
-matplotlib>=3.4.0
-tqdm>=4.62.0
-transformers>=4.30.0  # For Hugging Face models
-sentence-transformers>=2.2.2  # For embeddings
-diffusers>=0.16.0  # For generative models
-accelerate>=0.20.0  # For efficient inference
-faiss-cpu>=1.7.4  # For vector search
-huggingface-hub>=0.16.4  # For model downloading
-timm>=0.9.2  # For vision transformers
-einops>=0.6.1  # For tensor operations
-safetensors>=0.3.2  # For safe model loading
-peft>=0.5.0  # For parameter-efficient fine-tuning
-bitsandbytes>=0.41.0  # For quantization
-TTS>=0.17.0  # Coqui TTS package
-pydub>=0.25.1  # For audio processing
-soundfile>=0.12.1  # For audio file operations
-librosa>=0.10.0  # Audio processing library
-ffmpeg-python>=0.2.0  # For media processing
+┌───────────────┐      ┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+│  Human        │      │  Object       │      │  Speed        │      │  Physics      │
+│  Detection    ├─────►│  Tracking     ├─────►│  Estimation   ├─────►│  Verification │
+└───────────────┘      └───────────────┘      └───────────────┘      └───────────────┘
+                                                                             │
+        ┌────────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+│  Optical      │      │  Pose         │      │  Result       │
+│  Analysis     │◄─────┤  Detection    │      │  Visualization│
+└───────────────┘      └───────────────┘      └───────────────┘
 ```
 
-### Basic Installation
+### Data Flow
+
+The framework processes videos through sequential stages:
+
+1. **Input**: Video frames are extracted and processed one by one
+2. **Detection**: Humans are detected in each frame using deep learning models
+3. **Tracking**: Detected humans are tracked across frames to maintain identity
+4. **Analysis**: Multiple analyses are performed on tracked objects:
+   - Speed estimation based on positional changes
+   - Physics-based verification of calculated speeds
+   - Optical analysis for detailed motion characteristics
+   - Optional pose detection for biomechanical analysis
+5. **Output**: Results are saved to disk and can be visualized
+
+## Core Components
+
+### 1. Human Detection (`modules/detector.py`)
+
+The detection module uses YOLOv8, an object detection network, specifically configured to identify humans in video frames.
+
+**Technical Details:**
+- **Model**: YOLOv8 (nano or larger variants)
+- **Input**: RGB image frame
+- **Output**: List of bounding boxes with confidence scores
+- **Performance**: 
+  - Inference speed: ~30-100 FPS depending on hardware and model size
+  - Detection threshold configurable (default: 0.5)
+
+**Implementation:**
+
+```python
+detector = HumanDetector(
+    model_path="yolov8n.pt",  # Smaller model for speed
+    conf_threshold=0.5,
+    device="cuda:0"  # Uses GPU if available
+)
+detections = detector.detect(frame)
+```
+
+### 2. Object Tracking (`modules/tracker.py`)
+
+The tracking module implements a Kalman filter-based tracking system to maintain the identity of detected objects across frames.
+
+**Technical Details:**
+- **Algorithm**: Kalman filter with Hungarian algorithm for assignment
+- **State Space Model**: Position, velocity, and bounding box dimensions
+- **Assignment**: IoU (Intersection over Union) based matching
+
+**Mathematical Foundation:**
+
+State representation in the Kalman filter:
+$$x = [c_x, c_y, w, h, \dot{c_x}, \dot{c_y}, \dot{s}]^T$$
+
+Where:
+- $c_x, c_y$ are the center coordinates of the bounding box
+- $w, h$ are the width and height of the bounding box
+- $\dot{c_x}, \dot{c_y}$ are the velocity components
+- $\dot{s}$ is the scale change rate
+
+**Implementation:**
+```python
+tracker = HumanTracker(
+    max_age=30,       # Maximum frames to keep a track without matching
+    min_hits=3,       # Minimum detections before track is established
+    iou_threshold=0.3 # Threshold for detection-track association
+)
+tracks = tracker.update(detections, frame_idx)
+```
+
+### 3. Speed Estimation (`modules/speed_estimator.py`)
+
+The speed estimator calculates the velocity of tracked objects based on positional changes between frames.
+
+**Technical Details:**
+- **Input**: Track history with positions and current frame index
+- **Method**: Pixel displacement with optional calibration
+- **Output**: Estimated speed in km/h
+
+**Mathematical Foundation:**
+
+The basic speed calculation follows:
+$$v = \frac{\Delta d}{\Delta t} = \frac{d_{pixels} \cdot r_{calibration}}{\Delta frames / fps}$$
+
+Where:
+- $v$ is velocity in m/s (converted to km/h)
+- $d_{pixels}$ is distance in pixels
+- $r_{calibration}$ is the pixel-to-meter ratio
+- $fps$ is frames per second of the video
+
+For uncalibrated video, a default pixel-to-meter ratio is used, which may introduce systematic error in the absolute speed values.
+
+**Implementation:**
+```python
+speed_estimator = SpeedEstimator(calibration=None)
+tracks = speed_estimator.estimate(tracks, frame_idx=frame_idx, fps=video_fps)
+```
+
+### 4. Physics Verification (`modules/physics_verifier.py`)
+
+The physics verifier applies domain-specific constraints to validate speed estimates.
+
+**Technical Details:**
+- **Method**: Rule-based verification using physical constraints
+- **Context sensitivity**: Different constraints for different activities
+
+**Constraint Examples:**
+
+| Activity | Max Speed | Max Acceleration | Notes |
+|----------|-----------|------------------|-------|
+| Walking  | 7 km/h    | 2 m/s²           | Normal walking pace |
+| Running  | 45 km/h   | 10 m/s²          | Elite sprinters |
+| Cycling  | 80 km/h   | 4 m/s²           | Racing cyclists on flat terrain |
+
+**Implementation:**
+```python
+verifier = PhysicsVerifier(context='general')
+tracks = verifier.verify(tracks)
+```
+
+### 5. Optical Analysis (`modules/optical_analysis.py`)
+
+The optical analyzer implements advanced methods for detailed motion analysis using computer vision techniques.
+
+**Implemented Methods:**
+
+1. **Optical Flow Analysis**
+   - **Algorithm**: Farneback dense optical flow
+   - **Outputs**: Motion magnitude, direction, coherence
+   - **Applications**: Detecting direction and intensity of movement
+
+2. **Motion Energy Analysis**
+   - **Algorithm**: Motion History Images (MHI)
+   - **Outputs**: Motion energy, active regions, temporal signatures
+   - **Applications**: Activity detection, motion segmentation
+
+3. **Neuromorphic Camera Simulation**
+   - **Algorithm**: Event-based threshold crossing detection
+   - **Outputs**: Events density, polarity ratio
+   - **Applications**: High temporal precision motion detection
+
+4. **Texture and Gradient Analysis**
+   - **Algorithm**: Gabor filters and Local Binary Patterns
+   - **Outputs**: Texture scores, dominant orientations
+   - **Applications**: Surface and micro-motion detection
+
+5. **Shadow and Illumination Analysis**
+   - **Algorithm**: HSV-based shadow detection
+   - **Outputs**: Shadow area, movement direction
+   - **Applications**: Additional motion cues from lighting changes
+
+**Mathematical Foundations:**
+
+For optical flow, the algorithm solves:
+$$I(x,y,t) = I(x+\Delta x, y+\Delta y, t+\Delta t)$$
+
+Through Taylor expansion and additional constraints, this yields a flow field:
+$$\nabla I \cdot \mathbf{v} + I_t = 0$$
+
+Where:
+- $\nabla I$ is the spatial gradient
+- $\mathbf{v}$ is the velocity vector
+- $I_t$ is the temporal gradient
+
+**Implementation:**
+```python
+analyzer = OpticalAnalyzer(output_dir='results/optical_analysis')
+results = analyzer.analyze_video(
+    video_path,
+    methods=['optical_flow', 'motion_energy']
+)
+```
+
+## Practical Usage
+
+### Basic Command Line Usage
 
 ```bash
-pip install -r requirements.txt
+# Basic analysis of a video
+python main.py --input video.mp4 --output results/
+
+# Batch processing of multiple videos
+python batch_analyze.py --input_dir videos/ --output_dir results/batch --use_optical
+
+# Analysis of results
+python analyze_results.py --results_dir results/batch
 ```
 
-### Basic Usage
+### Optical Analysis Options
 
 ```bash
-python main.py --input video.mp4 --output results/ --calibration calibration.json --context sport
+# Analyze with specific optical methods
+python batch_analyze.py --input_dir videos/ --use_optical --optical_methods optical_flow motion_energy
+
+# Perform dedicated optical analysis
+python analyze_optical.py --video_path video.mp4 --methods optical_flow neuromorphic texture_analysis
 ```
 
-### Camera Calibration
+### Configuration Options
 
-For optimal accuracy, camera calibration is recommended:
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--detector` | Human detector model | yolov8n |
+| `--confidence` | Detection confidence threshold | 0.4 |
+| `--use_pose` | Enable pose estimation | False |
+| `--use_optical` | Enable optical analysis | False |
+| `--device` | Processing device | cuda:0 or cpu |
 
-```bash
-python calibrate.py --input calibration_video.mp4 --output calibration.json
-```
+## Results Analysis
 
-## Future Directions
+Vibrio generates several types of outputs that can be analyzed:
 
-The Vibrio framework is continually evolving with planned enhancements:
+1. **Annotated Videos**
+   - Bounding boxes around detected humans
+   - Track IDs and estimated speeds
+   - Visual overlays of optical analysis results
 
-1. **Advanced Biomechanical Modeling**
-   - Joint-level force analysis
-   - Energy expenditure estimation
-   - Fatigue prediction models
+2. **Quantitative Data**
+   - CSV files with frame-by-frame tracking data
+   - Speed profiles for each tracked object
+   - Optical analysis metrics time series
 
-2. **Improved Contextual Understanding**
-   - Automatic activity classification
-   - Sport-specific technique analysis
-   - Environment-aware calibration
+3. **Visualizations**
+   - Speed distribution graphs
+   - Motion heatmaps
+   - Comparative analysis between subjects
 
-3. **Extended Visualization Options**
-   - 3D reconstruction of movement
-   - Augmented reality overlays
-   - Comparative visualization with reference performances
+### Example Output: Speed Analysis
 
-4. **Integration Capabilities**
-   - API for third-party applications
-   - Mobile applications for field use
-   - Cloud-based processing for resource-intensive analyses
+![Speed Profile](public/visualization/speed_distribution.png)
+
+The plot above shows an example speed profile from tracking analysis, demonstrating the acceleration, steady-state, and deceleration phases of human motion. Statistical analysis of such profiles enables quantitative comparison between different subjects or activities.
+
+### Example Output: Optical Flow
+
+![Optical Flow Analysis](public/visualization/optical_flow_example.png)
+
+Optical flow analysis reveals motion patterns not immediately obvious in the raw video. The color-coded visualization shows direction (hue) and magnitude (saturation) of motion, providing insights into the distribution and coherence of movement.
+
+## Analysis Results: Motion Visualization
+
+The following visualizations demonstrate the framework's capabilities on real-world footage:
+
+### Detailed Analysis: Downhill Mountain Biking
+
+For the downhill mountain biking footage, we performed a comprehensive multi-method analysis, combining visual annotations, optical analysis methods, and quantitative metrics:
+
+#### 1. Activity Tracking and Annotation
+![Downhill Biking Annotation](public/gifs/downhill_biker_annotated.gif)
+
+#### 2. Optical Flow Analysis
+![Optical Flow Visualization](public/gifs/downhill_biker_optical_flow.gif)
+
+The optical flow analysis reveals detailed motion patterns:
+
+![Optical Flow Metrics](public/visualization/batch_results/downhill_biker/optical_flow_analysis.png)
+
+The plots show:
+- **Top**: Flow magnitude (mean, max, and standard deviation)
+- **Middle**: Motion direction in radians
+- **Bottom**: Motion coherence indicating coordinated movement
+
+#### 3. Motion Energy Analysis
+![Motion Energy Visualization](public/gifs/downhill_biker_motion_energy.gif)
+
+The motion energy metrics provide insights into activity intensity:
+
+![Motion Energy Metrics](public/visualization/batch_results/downhill_biker/motion_energy_analysis.png)
+
+The plots demonstrate:
+- **Top**: Motion energy over time, showing intensity variations
+- **Bottom**: Number of active regions, correlating with movement complexity
+
+#### 4. Frequency Analysis
+![Frequency Analysis Visualization](public/gifs/downhill_biker_frequency.gif)
+
+The frequency domain analysis quantifies motion patterns:
+
+![Frequency Analysis Metrics](public/visualization/batch_results/downhill_biker/frequency_analysis.png)
+
+This chart shows dominant motion frequencies and amplitudes in the rider's movement.
+
+#### 5. Combined Analysis
+![Combined Analysis](public/visualization/batch_results/downhill_biker/combined_motion_analysis.png)
+
+This visualization shows the normalized metrics from different analysis methods, allowing direct comparison between optical flow, motion coherence, and energy measurements, highlighting how these metrics correlate during different motion phases.
+
+### Analysis of Different Activities
+
+Vibrio has been tested on a variety of high-speed human activities, demonstrating its versatility:
+
+#### Alpine Skiing
+![Alpine Skiing](public/gifs/redbull_alpine_annotated.gif)
+
+**Key Findings**: Smooth acceleration phases followed by high-G turns with distinctive weight shifts. Analysis detected characteristic patterns in the skier's weight distribution during turns and rapid direction changes.
+
+#### Speed Skiing
+![Speed Skiing](public/gifs/speed_skiing_annotated.gif)
+
+**Key Findings**: Extreme speeds (100+ km/h) with minimal lateral movement and tightly controlled body position. Optical analysis revealed exceptionally high motion coherence values indicating the precise technique required at these speeds.
+
+These visualizations demonstrate how multiple optical methods can extract rich information about motion characteristics that go beyond simple speed measurements, revealing the biomechanical aspects of human performance across different activities.
+
+## Performance Considerations
+
+The framework's performance depends on several factors:
+
+1. **Hardware Requirements**
+   - CPU-only: Analysis runs at reduced speed (5-10 FPS)
+   - GPU-accelerated: Real-time or faster analysis possible (30+ FPS)
+
+2. **Model Selection Trade-offs**
+   - Smaller models (yolov8n): Faster but less accurate detection
+   - Larger models (yolov8x): More accurate but slower detection
+
+3. **Processing Resolution**
+   - Higher resolution: Better accuracy but slower processing
+   - Lower resolution: Faster processing but reduced accuracy
+
+## Limitations and Considerations
+
+1. **Speed Estimation Accuracy**
+   - Without camera calibration, absolute speed values are approximate
+   - Best used for relative comparisons between subjects in the same video
+
+2. **Tracking Challenges**
+   - Performance degrades with occlusions and crowded scenes
+   - Rapid camera movement can disrupt tracking continuity
+
+3. **Optical Analysis Requirements**
+   - Some methods require minimum video quality and resolution
+   - Performance is scene-dependent (lighting, background complexity)
 
 ## References
 
-[^1]: Krzysztof, M., & Mero, A. (2013). A kinematics analysis of three best 100 m performances ever. Journal of Human Kinetics, 36(1), 149-160.
+1. Jocher, G., Chaurasia, A., & Qiu, J. (2023). YOLO by Ultralytics [Computer software]. https://github.com/ultralytics/ultralytics
 
-[^2]: Rabita, G., Dorel, S., Slawinski, J., Sàez-de-Villarreal, E., Couturier, A., Samozino, P., & Morin, J. B. (2015). Sprint mechanics in world-class athletes: a new insight into the limits of human locomotion. Scandinavian journal of medicine & science in sports, 25(5), 583-594.
+2. Welch, G., & Bishop, G. (1995). An introduction to the Kalman filter. University of North Carolina at Chapel Hill, Department of Computer Science.
 
-[^3]: Morin, J. B., Edouard, P., & Samozino, P. (2011). Technical ability of force application as a determinant factor of sprint performance. Medicine and science in sports and exercise, 43(9), 1680-1688.
+3. Farnebäck, G. (2003). Two-frame motion estimation based on polynomial expansion. In Scandinavian conference on Image analysis (pp. 363-370).
 
-[^4]: Vilar, L., Araújo, D., Davids, K., & Button, C. (2012). The role of ecological dynamics in analysing performance in team sports. Sports Medicine, 42(1), 1-10.
+4. Bradski, G., & Kaehler, A. (2008). Learning OpenCV: Computer vision with the OpenCV library. O'Reilly Media, Inc.
 
-[^5]: Federolf, P. A. (2016). A novel approach to study human posture control: "Principal movements" obtained from a principal component analysis of kinematic marker data. Journal of biomechanics, 49(3), 364-370.
-
-[^6]: Stein, M., Janetzko, H., Seebacher, D., Jäger, A., Nagel, M., Hölsch, J., ... & Keim, D. A. (2017). How to make sense of team sport data: From acquisition to data modeling and research aspects. Data, 2(1), 2.
-
-[^7]: Jocher, G., Chaurasia, A., & Qiu, J. (2023). YOLO by Ultralytics (Version 8.0.0) [Computer software]. https://github.com/ultralytics/ultralytics
-
-[^8]: Qualcomm AI Research. (2023). RTMPose: Real-Time Multi-Person Pose Estimation based on MMPose. https://huggingface.co/qualcomm/RTMPose_Body2d 
-
-[^9]: Zhu, W., Wang, K., Liu, P., Zhang, Y., Guo, Y., & Sun, J. (2023). MotionBERT: Unified Pretraining for Human Motion Analysis. [arXiv preprint arXiv:2210.05413](https://arxiv.org/abs/2210.05413)
-
-[^10]: Radford, A., Kim, J. W., Xu, T., Brockman, G., McLeavey, C., & Sutskever, I. (2022). Robust Speech Recognition via Large-Scale Weak Supervision. OpenAI. [https://cdn.openai.com/papers/whisper.pdf](https://cdn.openai.com/papers/whisper.pdf)
-
-[^11]: Coqui Foundation. (2023). XTTS v2: Cross-lingual and Multilingual TTS with Voice Cloning. [https://huggingface.co/coqui/XTTS-v2](https://huggingface.co/coqui/XTTS-v2)
+5. Kuhn, H. W. (1955). The Hungarian method for the assignment problem. Naval research logistics quarterly, 2(1‐2), 83-97.
 
 ## License
 

@@ -549,3 +549,70 @@ class PoseDetector:
                         )
         
         return img_out 
+
+    def detect_pose(self, frame, detections):
+        """
+        Detect poses for given detections
+        
+        Args:
+            frame (numpy.ndarray): BGR image
+            detections (list): List of detections from HumanDetector
+            
+        Returns:
+            dict: Dictionary mapping person IDs to keypoints
+        """
+        # Use the detect method and organize results by person
+        pose_results = self.detect(frame)
+        
+        # Create a mapping of detections to pose keypoints
+        poses_by_person = {}
+        
+        # If no poses detected, return empty dict
+        if not pose_results['keypoints']:
+            return poses_by_person
+            
+        # Match detections with pose results
+        # This is a simple approach - in a real system, you'd use more sophisticated matching
+        for i, detection in enumerate(detections):
+            bbox = detection['bbox']
+            
+            # Find the closest pose detection
+            best_match_idx = -1
+            best_match_iou = 0
+            
+            for j, pose_bbox in enumerate(pose_results['bboxes']):
+                # Calculate IoU
+                iou = self._calculate_iou(bbox, pose_bbox[:4])
+                
+                if iou > best_match_iou:
+                    best_match_iou = iou
+                    best_match_idx = j
+            
+            # If we found a good match, add it to the result
+            if best_match_idx >= 0 and best_match_iou > 0.5:
+                poses_by_person[i] = pose_results['keypoints'][best_match_idx]
+        
+        return poses_by_person
+        
+    def _calculate_iou(self, bbox1, bbox2):
+        """Calculate IoU between two bounding boxes"""
+        x1_1, y1_1, x2_1, y2_1 = bbox1
+        x1_2, y1_2, x2_2, y2_2 = bbox2
+        
+        # Calculate intersection area
+        x1_i = max(x1_1, x1_2)
+        y1_i = max(y1_1, y1_2)
+        x2_i = min(x2_1, x2_2)
+        y2_i = min(y2_1, y2_2)
+        
+        if x2_i < x1_i or y2_i < y1_i:
+            return 0.0
+        
+        intersection_area = (x2_i - x1_i) * (y2_i - y1_i)
+        
+        # Calculate union area
+        bbox1_area = (x2_1 - x1_1) * (y2_1 - y1_1)
+        bbox2_area = (x2_2 - x1_2) * (y2_2 - y1_2)
+        union_area = bbox1_area + bbox2_area - intersection_area
+        
+        return intersection_area / union_area if union_area > 0 else 0.0 

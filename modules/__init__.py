@@ -6,6 +6,8 @@ from .tracker import HumanTracker
 from .speed_estimator import SpeedEstimator
 from .physics_verifier import PhysicsVerifier
 from .visualizer import Visualizer
+from .scientific_visualizer import ScientificVisualizer
+from .optical_analysis import OpticalAnalyzer
 from .utils import *
 
 # Advanced model modules
